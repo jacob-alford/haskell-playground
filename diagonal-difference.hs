@@ -1,9 +1,7 @@
 shape :: Int -> [a] -> [[a]]
 shape _ [] = []
-shape n arr
-  | length arr < n  = error "Provided shape does not match array dimensions!"
-  | length arr == n = [] ++ [take n arr] ++ shape n (drop n arr)
-  | otherwise       = [take n arr] ++ shape n (drop n arr)
+shape n arr | length arr < n = error "Provided shape does not divide array!"
+            | otherwise      = [take n arr] ++ shape n (drop n arr)
 
 offDiag :: Int -> [[a]] -> a
 offDiag index mat = mat !! index !! offIndex
