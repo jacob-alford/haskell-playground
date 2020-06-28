@@ -18,4 +18,3 @@ getOffDiags matrix = [ ith `offDiag` matrix | (_, ith) <- matrix `zip` [0 ..] ]
 
 diagDiff :: [[Int]] -> Int
 diagDiff matrix = abs $ (sum $ getDiags matrix) - (sum $ getOffDiags matrix)
-
