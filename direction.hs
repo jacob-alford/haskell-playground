@@ -3,34 +3,25 @@ module Codewars.Kata.Reduction where
 
 data Direction = North | East | West | South deriving (Eq, Show)
 
-type Vector = (Int, Int)
+isNS :: Direction -> Bool
+isNS = (`elem` [North, South])
 
-toVectors :: [Direction] -> [Vector]
-toVectors dirs = [ mapToVec x | x <- dirs ]
- where
-  mapToVec a = case a of
-    North -> (0, 1)
-    South -> (0, -1)
-    East  -> (1, 0)
-    West  -> (-1, 0)
+isWE :: Direction -> Bool
+isWE = (`elem` [West, East])
 
-sumVectors :: [Vector] -> Vector
-sumVectors = foldl (\(a, b) (c, d) -> (a + c, b + d)) (0, 0)
+isOpposite :: Direction -> Direction -> Bool
+isOpposite a b | isNS a && isNS b = a /= b
+               | isWE a && isWE b = a /= b
+               | otherwise        = False
 
-getNS :: Int -> [Direction]
-getNS a | a < 0     = [South]
-        | a > 0     = [North]
-        | otherwise = []
-
-getWE :: Int -> [Direction]
-getWE a | a < 0     = [West]
-        | a > 0     = [East]
-        | otherwise = []
-
-toDirections :: Vector -> [Direction]
-toDirections (we, ns) =
-  (take (abs ns) $ concat (repeat (getNS ns)))
-    ++ (take (abs we) $ concat (repeat (getWE we)))
+eliminateNeighbors :: [Direction] -> [Direction]
+eliminateNeighbors []  = []
+eliminateNeighbors [a] = [a]
+eliminateNeighbors (d : ds)
+  | d `isOpposite` (head ds) = eliminateNeighbors $ drop 1 ds
+  | otherwise                = d : eliminateNeighbors ds
 
 dirReduce :: [Direction] -> [Direction]
-dirReduce = toDirections . sumVectors . toVectors
+dirReduce lastDirs | nextDirs == lastDirs = nextDirs
+                   | otherwise            = dirReduce nextDirs
+  where nextDirs = eliminateNeighbors lastDirs
