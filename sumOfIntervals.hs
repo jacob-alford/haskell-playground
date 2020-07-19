@@ -3,26 +3,35 @@ module SumOfIntervals
   )
 where
 
-import           Data.List                      ( sort )
+overlaps :: (Int, Int) -> (Int, Int) -> Bool
+overlaps (a1, a2) (b1, b2) | a1 == b1 || a2 == b2 = True
+                           | a1 < b1 && a2 > b1   = True
+                           | a1 > b1 && a2 < b2   = True
+                           | a1 < b2 && a2 > b2   = True
+                           | otherwise            = False
 
 joint :: (Int, Int) -> (Int, Int) -> Bool
-joint (a1, a2) (b1, b2) =
-  (a1 == b1) || (a2 == b2) || (b1 > a1 && b1 < a2) || (b2 < a2 && b2 > a1)
+joint a b = overlaps a b || overlaps b a
 
-properIntv :: (Int, Int) -> (Int, Int) -> (Int, Int)
-properIntv (a1, a2) (b1, b2) = (min a1 b1, max a2 b2)
+joinIntv :: (Int, Int) -> (Int, Int) -> (Int, Int)
+joinIntv (a1, a2) (b1, b2) = (min a1 b1, max a2 b2)
 
 reduceToDisjoint :: [(Int, Int)] -> [(Int, Int)]
-reduceToDisjoint intvs = foldl
-  (\djs nxt -> if joint (head djs) nxt
-    then (properIntv (head djs) nxt) : (tail djs)
-    else nxt : djs
-  )
-  [head intvs]
-  (tail intvs)
+reduceToDisjoint []     = []
+reduceToDisjoint ranges = join joints : reduceToDisjoint disjoints
+ where
+  x         = head ranges
+  xs        = tail ranges
+  join      = foldl joinIntv x
+  joints    = filter (joint x) xs
+  disjoints = filter (not . joint x) xs
+
+repeatDisjoin :: [(Int, Int)] -> [(Int, Int)] -> [(Int, Int)]
+repeatDisjoin prev next | prev == next = next
+                        | otherwise = repeatDisjoin next (reduceToDisjoint next)
 
 sumIntvs :: [(Int, Int)] -> Int
 sumIntvs = foldl (\total (low, high) -> total + (high - low)) 0
 
 sumOfIntervals :: [(Int, Int)] -> Int
-sumOfIntervals = sumIntvs . reduceToDisjoint . reverse . sort
+sumOfIntervals = sumIntvs . repeatDisjoin []
